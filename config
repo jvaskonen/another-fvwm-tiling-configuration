@@ -299,7 +299,7 @@ DestroyFunc TileLast
 AddToFunc TileLast
  + I Pick SetEnv CURRENT_WINDOW $[w.id]
  + I BorderTitleWindowDecoration
- + I Resize $2 $3
+ + I Resize Frame $2 $3
  + I WarpNotUnder
  + I Move $0 $1 Warp
  + I Prev BorderTitleWindowDecoration
