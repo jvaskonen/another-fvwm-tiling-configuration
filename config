@@ -293,6 +293,20 @@ AddToFunc TileWindowFull
  + I WarpNotUnder
  + I Move 0 0 Warp
 
+# TileWithLast FocusedX FocusedY FocusedWidth FocusedHeight \
+#              LastX LastY LastWidth LastHeight
+DestroyFunc TileLast
+AddToFunc TileLast
+ + I Pick SetEnv CURRENT_WINDOW $[w.id]
+ + I BorderTitleWindowDecoration
+ + I Resize $2 $3
+ + I WarpNotUnder
+ + I Move $0 $1 Warp
+ + I Prev BorderTitleWindowDecoration
+ + I Prev Resize Frame $6 $7
+ + I Prev Move $4 $5
+ + I Prev WindowId $[CURRENT_WINDOW] Focus
+
 # Tiles all windows at once
 DestroyFunc AddBordersThenTile
 AddToFunc AddBorderThenTile
@@ -445,6 +459,12 @@ Key  2        A    3S   TileWindow   33 -0  34 33
 Key  KP_Down  A    3S   TileWindow   33 -0  34 33
 Key  3        A    3S   TileWindow   -0 -0  33 33
 Key  KP_Next  A    3S   TileWindow   -0 -0  33 33
+
+# Tile with last window
+Key  Minus     A    3    TileLast  0  0 100  50  0 -0 100  50
+Key  Minus     A    3S   TileLast  0 -0 100  50  0  0 100  50
+Key  backslash A    3    TileLast  0  0  50 100 -0  0  50 100
+Key  backslash A    3S   TileLast -0  0  50 100  0 -0  50 100
 
 #####
 #Launcher Shortcuts
