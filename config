@@ -1,9 +1,9 @@
 #####
-#      _/_/_/_/  _/      _/  _/          _/  _/      _/   
-#     _/        _/      _/  _/          _/  _/_/  _/_/    
-#    _/_/_/    _/      _/  _/    _/    _/  _/  _/  _/     
-#   _/          _/  _/      _/  _/  _/    _/      _/      
-#  _/            _/          _/  _/      _/      _/ 
+#      _/_/_/_/  _/      _/  _/          _/  _/      _/
+#     _/        _/      _/  _/          _/  _/_/  _/_/
+#    _/_/_/    _/      _/  _/    _/    _/  _/  _/  _/
+#   _/          _/  _/      _/  _/  _/    _/      _/
+#  _/            _/          _/  _/      _/      _/
 # Inspired by:
 # http://zensites.net/fvwm/guide & ratpoison
 ###########
@@ -17,7 +17,7 @@ ImagePath $[FVWM_USERDIR]/icons:$[FVWM_USERDIR]/decor:+
 DesktopSize 3x3
 DesktopName 0 Main
 EdgeScroll 0 0
-           
+
 #####
 # Mouse and Focus Behavior
 ###########
@@ -48,7 +48,7 @@ TitleStyle LeftJustified Height 30
 TitleStyle Active HGradient 40 rgb:70/0/0 black -- Flat
 TitleStyle Inactive HGradient 40 rgb:70/30/30 rgb:30/30/30 -- Flat
 BorderStyle Inactive Colorset 3
-BorderStyle Active Colorset 4 
+BorderStyle Active Colorset 4
 
 #####
 # Window Resizeing and Movment
@@ -56,7 +56,7 @@ BorderStyle Active Colorset 4
 OpaqueMoveSize -1
 Style * ResizeOpaque
 Style * EdgeMoveDelay 10, EdgeMoveResistance -1
-Style * SnapAttraction 0, SnapGrid 1 1 
+Style * SnapAttraction 0, SnapGrid 1 1
 HideGeometryWindow Never
 
 #####
@@ -136,6 +136,7 @@ AddToFunc WindowListFunc
  + I Iconify off
  + I FlipFocus
  + I Raise
+ + I WarpNotUnder
 
 #Shoot windows around between places
 DestroyFunc MoveToPageAndGo
@@ -255,7 +256,7 @@ AddToFunc TitleOnlyWindowDecoration
                             !State 11,     \
                             !State 12
  + I UpdateStyles
- 
+
 DestroyFunc CycleDecoration
 AddToFunc CycleDecoration
  + I ThisWindow (!State 11, !State 12) BorderTitleWindowDecoration
@@ -274,37 +275,15 @@ AddToFunc AddBorderThenDo
  + I $*
 
 # Tiling Functions
-DestroyFunc TileWindowTopLeft
-AddToFunc TileWindowTopLeft
- + I Raise
- + I BorderTitleWindowDecoration
- + I Move 0 0 Warp
- + I Resize frame 50 50
- + I WarpNotUnder
- 
-DestroyFunc TileWindowTop
-AddToFunc TileWindowTop
- + I Raise
- + I BorderTitleWindowDecoration
- + I Move 0 0 Warp
- + I Resize frame 100 50
- + I WarpNotUnder
 
-DestroyFunc TileWindowTopRight
-AddToFunc TileWindowTopRight
+# TileWindow MoveX MoveY SizeX SizeY
+DestroyFunc TileWindow
+AddToFunc TileWindow
  + I Raise
  + I BorderTitleWindowDecoration
- + I Resize frame 50 50
+ + I Resize Frame $2 $3
  + I WarpNotUnder
- + I Move -0 0 Warp
- 
-DestroyFunc TileWindowLeft
-AddToFunc TileWindowLeft
- + I Raise
- + I BorderTitleWindowDecoration
- + I Resize frame 50 100
- + I WarpNotUnder
- + I Move 0 0 Warp
+ + I Move $0 $1 Warp
 
 DestroyFunc TileWindowFull
 AddToFunc TileWindowFull
@@ -313,38 +292,6 @@ AddToFunc TileWindowFull
  + I Resize frame 100 100
  + I WarpNotUnder
  + I Move 0 0 Warp
-
-DestroyFunc TileWindowRight
-AddToFunc TileWindowRight
- + I Raise
- + I BorderTitleWindowDecoration
- + I Resize frame 50 100
- + I WarpNotUnder
- + I Move -0 0 Warp
-
-DestroyFunc TileWindowBottomLeft
-AddToFunc TileWindowBottomLeft
- + I Raise
- + I BorderTitleWindowDecoration
- + I Resize frame 50 50
- + I WarpNotUnder
- + I Move 0 -0p Warp
-
-DestroyFunc TileWindowBottom
-AddToFunc TileWindowBottom
- + I Raise
- + I BorderTitleWindowDecoration
- + I Resize frame 100 50
- + I WarpNotUnder
- + I Move 0 -0p Warp
-
-DestroyFunc TileWindowBottomRight
-AddToFunc TileWindowBottomRight
- + I Raise
- + I BorderTitleWindowDecoration
- + I Resize frame 50 50
- + I WarpNotUnder
- + I Move -0p -0p Warp
 
 # Tiles all windows at once
 DestroyFunc AddBordersThenTile
@@ -359,9 +306,9 @@ IgnoreModifiers L25
 Mouse 2      A    3    WindowList (CurrentPage) Root c c NoDeskSort
 Mouse 2      A    3M   WindowList Root c c NoDeskSort, SelectOnRelease Space
 Mouse 8      A    A    Prev (AcceptsFocus, !Iconic, CurrentPage) FocusRaise
-Mouse 9      A    A    Next (AcceptsFocus, !Iconic, CurrentPage) FocusRaise 
+Mouse 9      A    A    Next (AcceptsFocus, !Iconic, CurrentPage) FocusRaise
 Mouse 8      A    C    Prev (AcceptsFocus, !Iconic) FocusRaise
-Mouse 9      A    C    Next (AcceptsFocus, !Iconic) FocusRaise 
+Mouse 9      A    C    Next (AcceptsFocus, !Iconic) FocusRaise
 Mouse 1      R    C    Menu MenuFvwmRoot
 Mouse 1      R    N    Nop
 
@@ -387,23 +334,23 @@ Mouse 1      W    3M   RaiseOrDo Move
 Mouse 1      W    3C   RaiseOrDo Resize
 
 # Cycle decorations with window key + wheel on titlebar
-Mouse 4      TSF  3    CycleDecoration 
-Mouse 5      TSF  3    ReverseCycleDecoration   
+Mouse 4      TSF  3    CycleDecoration
+Mouse 5      TSF  3    ReverseCycleDecoration
 
 # Alt+Tab Action
 Key   Tab    A    M    WindowList (CurrentPage) Root c c \
                            NoDeskSort, SelectOnRelease Meta_L, CurrentAtEnd
 Key   Tab    A    CM   WindowList Root c c NoDeskSort, SelectOnRelease Meta_L, CurrentAtEnd
 
-# switch pages with ctrl + meta + numberpad 
+# switch pages with ctrl + meta + numberpad
 Key   KP_Home    A    CM   GotoPage 0 0
-Key   KP_Up      A    CM   GotoPage 1 0 
+Key   KP_Up      A    CM   GotoPage 1 0
 Key   KP_Prior   A    CM   GotoPage 2 0
 Key   KP_Left    A    CM   GotoPage 0 1
 Key   KP_Begin   A    CM   GotoPage 1 1
 Key   KP_Right   A    CM   GotoPage 2 1
-Key   KP_End     A    CM   GotoPage 0 2 
-Key   KP_Down    A    CM   GotoPage 1 2 
+Key   KP_End     A    CM   GotoPage 0 2
+Key   KP_Down    A    CM   GotoPage 1 2
 Key   KP_Next    A    CM   GotoPage 2 2
 
 # use ctrl + meta + arrows to move to page left, right, etc.
@@ -419,13 +366,13 @@ Key   KP_Prior   A    CS   MoveToPage 2 0
 Key   KP_Left    A    CS   MoveToPage 0 1
 Key   KP_Begin   A    CS   MoveToPage 1 1
 Key   KP_Right   A    CS   MoveToPage 2 1
-Key   KP_End     A    CS   MoveToPage 0 2 
+Key   KP_End     A    CS   MoveToPage 0 2
 Key   KP_Down    A    CS   MoveToPage 1 2
 Key   KP_Next    A    CS   MoveToPage 2 2
 Key   Right      A    CS   MoveToPage wrapx +1p +0p
 Key   Left       A    CS   MoveToPage wrapx -1p -0p
-Key   Up         A    CS   MoveToPage wrapy -0p -1p 
-Key   Down       A    CS   MoveToPage wrapy +0p +1p 
+Key   Up         A    CS   MoveToPage wrapy -0p -1p
+Key   Down       A    CS   MoveToPage wrapy +0p +1p
 
 # send window to pages and switch to that page with ctrl + meta + shift + KP/Arrows
 Key   KP_Home    A    CMS  MoveToPageAndGo 0 0
@@ -434,13 +381,13 @@ Key   KP_Prior   A    CMS  MoveToPageAndGo 2 0
 Key   KP_Left    A    CMS  MoveToPageAndGo 0 1
 Key   KP_Begin   A    CMS  MoveToPageAndGo 1 1
 Key   KP_Right   A    CMS  MoveToPageAndGo 2 1
-Key   KP_End     A    CMS  MoveToPageAndGo 0 2 
+Key   KP_End     A    CMS  MoveToPageAndGo 0 2
 Key   KP_Down    A    CMS  MoveToPageAndGo 1 2
 Key   KP_Next    A    CMS  MoveToPageAndGo 2 2
 Key   Right  A    CMS  MoveToPageAndGo wrapx +1p +0p
 Key   Left   A    CMS  MoveToPageAndGo wrapx -1p -0p
-Key   Up     A    CMS  MoveToPageAndGo wrapy -0p -1p 
-Key   Down   A    CMS  MoveToPageAndGo wrapy +0p +1p 
+Key   Up     A    CMS  MoveToPageAndGo wrapy -0p -1p
+Key   Down   A    CMS  MoveToPageAndGo wrapy +0p +1p
 
 # "windows" Key Shortcuts
 Key  F1       A    3    Menu MenuFvwmRoot
@@ -458,29 +405,51 @@ Key  v        A    3    AddBorderThenTile
 Key  m        A    3S   Maximize 100 100
 Key  Space    A    3    Raise
 Key  Space    A    3S   Lower
-Key  7        A    3    TileWindowTopLeft
-Key  KP_Home  A    3    TileWindowTopLeft
-Key  8        A    3    TileWindowTop
-Key  KP_Up    A    3    TileWindowTop
-Key  9        A    3    TileWindowTopRight
-Key  KP_Prior A    3    TileWindowTopRight
-Key  4        A    3    TileWindowLeft
-Key  KP_Left  A    3    TileWindowLeft
+
+# Tile by quadrants
+Key  7        A    3    TileWindow  0  0  50  50
+Key  KP_Home  A    3    TileWindow  0  0  50  50
+Key  8        A    3    TileWindow  0  0  100 50
+Key  KP_Up    A    3    TileWindow  0  0  100 50
+Key  9        A    3    TileWindow -0  0  50  50
+Key  KP_Prior A    3    TileWindow -0  0  50  50
+Key  4        A    3    TileWindow  0  0  50  100
+Key  KP_Left  A    3    TileWindow  0  0  50  100
 Key  5        A    3    TileWindowFull
 Key  KP_Begin A    3    TileWindowFull
-Key  6        A    3    TileWindowRight
-Key  KP_Right A    3    TileWindowRight
-Key  1        A    3    TileWindowBottomLeft
-Key  KP_End   A    3    TileWindowBottomLeft
-Key  2        A    3    TileWindowBottom
-Key  KP_Down  A    3    TileWindowBottom
-Key  3        A    3    TileWindowBottomRight
-Key  KP_Next  A    3    TileWindowBottomRight
+Key  6        A    3    TileWindow -0  0  50  100
+Key  KP_Right A    3    TileWindow -0  0  50  100
+Key  1        A    3    TileWindow  0 -0  50  50
+Key  KP_End   A    3    TileWindow  0 -0  50  50
+Key  2        A    3    TileWindow  0 -0  100 50
+Key  KP_Down  A    3    TileWindow  0 -0  100 50
+Key  3        A    3    TileWindow -0 -0  50  50
+Key  KP_Next  A    3    TileWindow -0 -0  50  50
+
+# Tile by thirds
+Key  7        A    3S   TileWindow    0  0  33 33
+Key  KP_Home  A    3S   TileWindow    0  0  33 33
+Key  8        A    3S   TileWindow   33  0  34 33
+Key  KP_Up    A    3S   TileWindow   33  0  34 33
+Key  9        A    3S   TileWindow   -0  0  33 33
+Key  KP_Prior A    3S   TileWindow   -0  0  33 33
+Key  4        A    3S   TileWindow    0 33  33 34
+Key  KP_Left  A    3S   TileWindow    0 33  33 34
+Key  5        A    3S   TileWindow   33 33  34 34
+Key  KP_Begin A    3S   TileWindow   33 33  34 34
+Key  6        A    3S   TileWindow   -0 33  33 34
+Key  KP_Right A    3S   TileWindow   -0 33  33 34
+Key  1        A    3S   TileWindow    0 -0  33 33
+Key  KP_End   A    3S   TileWindow    0 -0  33 33
+Key  2        A    3S   TileWindow   33 -0  34 33
+Key  KP_Down  A    3S   TileWindow   33 -0  34 33
+Key  3        A    3S   TileWindow   -0 -0  33 33
+Key  KP_Next  A    3S   TileWindow   -0 -0  33 33
 
 #####
 #Launcher Shortcuts
 ###########
-Key Menu     A    C    Exec exec xterm 
+Key Menu     A    C    Exec exec xterm
 Key Menu     A    M    Exec exec xterm -e emacs
 Key Menu     A    S    Exec exec firefox -P default
 Key Print    A    A    FvwmDesktopScreenshot
