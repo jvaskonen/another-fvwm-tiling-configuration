@@ -1,0 +1,487 @@
+#####
+#      _/_/_/_/  _/      _/  _/          _/  _/      _/   
+#     _/        _/      _/  _/          _/  _/_/  _/_/    
+#    _/_/_/    _/      _/  _/    _/    _/  _/  _/  _/     
+#   _/          _/  _/      _/  _/  _/    _/      _/      
+#  _/            _/          _/  _/      _/      _/ 
+# Inspired by:
+# http://zensites.net/fvwm/guide & ratpoison
+###########
+
+#Image Path
+ImagePath $[FVWM_USERDIR]/icons:$[FVWM_USERDIR]/decor:+
+
+#####
+# Desktops
+###########
+DesktopSize 3x3
+DesktopName 0 Main
+EdgeScroll 0 0
+           
+#####
+# Mouse and Focus Behavior
+###########
+ClickTime 275
+MoveThreshold 3
+Style * SloppyFocus, MouseFocusClickRaises
+
+#####
+# Window Look and Feel
+###########
+
+# Inactive Window Title Font
+Colorset 1  fg rgb:a0/a0/a0, bg rgb:60/60/60, Plain, NoShape
+# Active Window Title Font
+Colorset 2  fg rgb:c0/c0/c0, Plain, NoShape
+# Inactive Window Border
+Colorset 3  fg rgb:60/60/60, bg rgb:45/45/45, Plain, NoShape
+# Active Window Border
+Colorset 4  fg rgb:70/70/70, bg rgb:40/40/40, Plain, NoShape
+
+# Titlebar is only decoration by default
+Style * BorderWidth 0, HandleWidth 0,    \
+        !Button 1, !Button 2, !Button 4, \
+        Colorset 1, HilightColorset 2,   \
+        FPGrabFocus
+WindowFont "shadow=3:xft:Georgia:Bold:size=18:antialias=True"
+TitleStyle LeftJustified Height 30
+TitleStyle Active HGradient 40 rgb:70/0/0 black -- Flat
+TitleStyle Inactive HGradient 40 rgb:70/30/30 rgb:30/30/30 -- Flat
+BorderStyle Inactive Colorset 3
+BorderStyle Active Colorset 4 
+
+#####
+# Window Resizeing and Movment
+###########
+OpaqueMoveSize -1
+Style * ResizeOpaque
+Style * EdgeMoveDelay 10, EdgeMoveResistance -1
+Style * SnapAttraction 0, SnapGrid 1 1 
+HideGeometryWindow Never
+
+#####
+# Maximize non-transient windows when created
+###########
+DestroyModuleConfig NewWindowEvent: *
+ *NewWindowEvent: Cmd Function
+ *NewWindowEvent: add_window NewWindowFunction
+Module FvwmEvent NewWindowEvent
+
+DestroyFunc NewWindowFunction
+AddToFunc NewWindowFunction
+ + I ThisWindow (!Transient) TileWindowFull
+ + I ThisWindow (Transient) WindowStyle BorderWidth 5, HandleWidth 5, Borders, Handles, State 11
+
+#####
+# Transient Windows
+###########
+Style * GrabFocusTransientOn, DecorateTransient, DontRaiseTransient
+Style * DontLowerTransient, StackTransientParent
+
+#####
+# Icons (Minimized Windows)
+###########
+Style * SlipperyIcon, IconBox screen w 15 15 -165 -15, IconGrid 3 3, IconFill right top
+
+#####
+# EwmhBaseStruts [left] [right] [top] [bottom]
+# Sets what part of the screen is not covered by windows that are maximized
+###########
+EwmhBaseStruts 0 0 0 0
+
+#####
+# StartFunction
+###########
+DestroyFunc StartFunction
+AddToFunc StartFunction
+ + I Test (Init) Exec exec feh --bg-scale $[FVWM_USERDIR]/decor/background.png
+ + I Test (Restart) Nop
+ + I Module FvwmEvent
+
+#####
+# Basic Functions
+###########
+DestroyFunc FvwmDeleteOrDestroy
+AddToFunc FvwmDeleteOrDestroy
+ + H Nop
+ + M Nop
+ + C Delete
+ + D Destroy
+
+DestroyFunc DoubleClickDeleteWindow
+AddToFunc DoubleClickDeleteWindow
+ + D Delete
+
+# Unless windows are decorated, don't do the action given with $0
+DestroyFunc RaiseShadeOrDo
+AddToFunc RaiseShadeOrDo
+ + M ThisWindow (State 11) $0
+ + C Raise
+ + D WindowShade
+
+# Happen regardless of decoration
+DestroyFunc RaiseOrDo
+AddToFunc RaiseOrDo
+ + M ThisWindow (!State 11, !State 12) BorderTitleWindowDecoration
+ + M $0
+ + C Raise
+
+DestroyFunc FvwmMoveOrIconify
+AddToFunc FvwmMoveOrIconify
+ + M Move
+ + D Iconify
+
+DestroyFunc WindowListFunc
+AddToFunc WindowListFunc
+ + I Iconify off
+ + I FlipFocus
+ + I Raise
+
+#Shoot windows around between places
+DestroyFunc MoveToPageAndGo
+AddToFunc MoveToPageAndGo
+ + I MoveToPage $*
+ + I GotoPage $*
+
+#####
+# Screenshot Functions (uses ImageMagick)
+###########
+DestroyFunc FvwmWindowScreenshot
+AddToFunc FvwmWindowScreenshot
+ + I ThisWindow (!Shaded, !Iconic, Iconifiable) Raise
+ + I Exec import -window $w -quality 100 -silent \
+     ~/"screenshots/"`date '+%F-%R'`-$[w.name].png
+
+DestroyFunc FvwmDesktopScreenshot
+AddToFunc FvwmDesktopScreenshot
+ + I Exec import -window root -quality 100 -silent \
+     ~/"screenshots/"`date '+%F-%R'`".png"
+
+#####
+# I pretty much never use this, but it's cool
+# Thumbnail Function by taviso
+# http://taviso.decsystem.org/fvwm2rc
+# ( Uses xwd and ImageMagick )
+###########
+DestroyFunc Thumbnail
+AddToFunc Thumbnail
++ I Raise
++ I ThisWindow (!Iconic) SetEnv Icon-$[w.id] $[w.iconfile]
++ I ThisWindow (!Shaded, Iconifiable, !Iconic) PipeRead \
+    "xwd -silent -id $[w.id] | convert -scale 128 -frame 1x1 \
+    -mattecolor black -quality 0 -filter blackman xwd:- png:$[FVWM_USERDIR]/tmp/icon.$[w.id].png \
+    && echo WindowStyle IconOverride, Icon $[FVWM_USERDIR]/tmp/icon.$[w.id].png \
+    || echo Nop"
++ I TestRc (Match) Test (f $[w.miniiconfile], f $[FVWM_USERDIR]/icon.tmp.$[w.id].png) PipeRead \
+    "composite -geometry +2+4 $[w.miniiconfile] $[FVWM_USERDIR]/tmp/icon.$[w.id].png \
+    $[FVWM_USERDIR]/tmp/icon.$[w.id].png; echo Nop"
++ I Iconify
+
+DestroyFunc DeThumbnail
+AddToFunc DeThumbnail
++ I PipeRead "echo Test \\(i \\$\\[Icon-$[w.id]\\]\\) WindowStyle Icon \\$\\[Icon-$[w.id]\\]"
++ I TestRc (NoMatch) WindowStyle NoIconOverride, Icon
++ I Exec rm -f $[FVWM_USERDIR]/tmp/icon.$[w.id].png
++ I All (Iconic, CurrentPage, AnyScreen) PlaceAgain icon
++ I UnsetEnv Icon-$[w.id]
+
+DestroyFunc FocusRaise
+AddToFunc FocusRaise
+ + I Focus
+ + I Raise
+ + I WarpNotUnder
+
+# This function looks to see if the mouse cursor is over the focused window. If it is not, it moves
+# the cursor to the middle of the window.
+# The echo statement is statement comparing the pointer location and window location, which is
+# evaled bc. If the pointer is outside the window, bc will output 1, which will be caught by grep,
+# thus triggering the warp command. If the pointer is within the window, then Nop.
+DestroyFunc WarpNotUnder
+AddToFunc WarpNotUnder
+ + I ThisWindow PipeRead "echo '$[pointer.x] < $[w.x] || $[pointer.x] > $[w.x] + $[w.width]'     \
+                               '|| $[pointer.y] < $[w.y] || $[pointer.y] > $[w.y] + $[w.height]' \
+                               | bc | grep -q 1 && echo WarpToWindow 50 50 || Nop"
+
+#######
+# Window Decoration Functions
+####
+DestroyFunc FullWindowDecoration
+AddToFunc FullWindowDecoration
+ + I ThisWindow (!State 11, !State 12) Resize w-10p w-10p
+ + I ThisWindow (State 12) Resize w-6p w-6p
+ + I ThisWindow WindowStyle Borders,       \
+                            BorderWidth 5, \
+                            Handles,       \
+                            HandleWidth 5, \
+                            MWMButtons,    \
+                            FvwmBorder,    \
+                            FirmBorder,    \
+                            Button 1,      \
+                            Button 2,      \
+                            Button 4,      \
+                            State 11,      \
+                            !State 12
+ + I UpdateStyles
+
+Key  a        A    3    BorderTitleWindowDecoration
+Key  o        A    3    FullWindowDecoration
+Key  e        A    3    TitleOnlyWindowDecoration
+DestroyFunc BorderTitleWindowDecoration
+AddToFunc BorderTitleWindowDecoration
+ + I ThisWindow (!State 11, !State 12) Resize w-4p w-4p
+ + I ThisWindow (State 11) Resize w+6p w+6p
+ + I ThisWindow WindowStyle Borders,       \
+                            BorderWidth 2, \
+                            !Handles,      \
+                            HandleWidth 2, \
+                            !Button 1,     \
+                            !Button 2,     \
+                            !Button 4,     \
+                            !State 11,     \
+                            State 12
+ + I UpdateStyles
+
+DestroyFunc TitleOnlyWindowDecoration
+AddToFunc TitleOnlyWindowDecoration
+ + I ThisWindow (State 11) Resize w+10p w+10p
+ + I ThisWindow (State 12) Resize w+4p w+4p
+ + I ThisWindow WindowStyle !Borders,      \
+                            BorderWidth 0, \
+                            !Handles,      \
+                            HandleWidth 0, \
+                            !Button 1,     \
+                            !Button 2,     \
+                            !Button 4,     \
+                            !State 11,     \
+                            !State 12
+ + I UpdateStyles
+ 
+DestroyFunc CycleDecoration
+AddToFunc CycleDecoration
+ + I ThisWindow (!State 11, !State 12) BorderTitleWindowDecoration
+ + I TestRc (NoMatch) ThisWindow (State 12) FullWindowDecoration
+ + I TestRc (NoMatch) ThisWindow (State 11) TitleOnlyWindowDecoration
+
+DestroyFunc ReverseCycleDecoration
+AddToFunc ReverseCycleDecoration
+ + I ThisWindow (!State 11, !State 12) FullWindowDecoration
+ + I TestRc (NoMatch) ThisWindow (State 12) TitleOnlyWindowDecoration
+ + I TestRc (NoMatch) ThisWindow (State 11) BorderTitleWindowDecoration
+
+DestroyFunc AddBorderThenDo
+AddToFunc AddBorderThenDo
+ + I ThisWindow (!State 11, !State 12) BorderTitleWindowDecoration
+ + I $*
+
+# Tiling Functions
+DestroyFunc TileWindowTopLeft
+AddToFunc TileWindowTopLeft
+ + I Raise
+ + I BorderTitleWindowDecoration
+ + I Move 0 0 Warp
+ + I Resize frame 50 50
+ + I WarpNotUnder
+ 
+DestroyFunc TileWindowTop
+AddToFunc TileWindowTop
+ + I Raise
+ + I BorderTitleWindowDecoration
+ + I Move 0 0 Warp
+ + I Resize frame 100 50
+ + I WarpNotUnder
+
+DestroyFunc TileWindowTopRight
+AddToFunc TileWindowTopRight
+ + I Raise
+ + I BorderTitleWindowDecoration
+ + I Resize frame 50 50
+ + I WarpNotUnder
+ + I Move -0 0 Warp
+ 
+DestroyFunc TileWindowLeft
+AddToFunc TileWindowLeft
+ + I Raise
+ + I BorderTitleWindowDecoration
+ + I Resize frame 50 100
+ + I WarpNotUnder
+ + I Move 0 0 Warp
+
+DestroyFunc TileWindowFull
+AddToFunc TileWindowFull
+ + I Raise
+ + I TitleOnlyWindowDecoration
+ + I Resize frame 100 100
+ + I WarpNotUnder
+ + I Move 0 0 Warp
+
+DestroyFunc TileWindowRight
+AddToFunc TileWindowRight
+ + I Raise
+ + I BorderTitleWindowDecoration
+ + I Resize frame 50 100
+ + I WarpNotUnder
+ + I Move -0 0 Warp
+
+DestroyFunc TileWindowBottomLeft
+AddToFunc TileWindowBottomLeft
+ + I Raise
+ + I BorderTitleWindowDecoration
+ + I Resize frame 50 50
+ + I WarpNotUnder
+ + I Move 0 -0p Warp
+
+DestroyFunc TileWindowBottom
+AddToFunc TileWindowBottom
+ + I Raise
+ + I BorderTitleWindowDecoration
+ + I Resize frame 100 50
+ + I WarpNotUnder
+ + I Move 0 -0p Warp
+
+DestroyFunc TileWindowBottomRight
+AddToFunc TileWindowBottomRight
+ + I Raise
+ + I BorderTitleWindowDecoration
+ + I Resize frame 50 50
+ + I WarpNotUnder
+ + I Move -0p -0p Warp
+
+# Tiles all windows at once
+DestroyFunc AddBordersThenTile
+AddToFunc AddBorderThenTile
+ + I All (!State 11, !State 12, !Maximized, !Transient, !Sticky) BorderTitleWindowDecoration
+ + I FvwmTile $*
+
+#####
+# Bindings
+###########
+IgnoreModifiers L25
+Mouse 2      A    3    WindowList (CurrentPage) Root c c NoDeskSort
+Mouse 2      A    3M   WindowList Root c c NoDeskSort, SelectOnRelease Space
+Mouse 8      A    A    Prev (AcceptsFocus, !Iconic, CurrentPage) FocusRaise
+Mouse 9      A    A    Next (AcceptsFocus, !Iconic, CurrentPage) FocusRaise 
+Mouse 8      A    C    Prev (AcceptsFocus, !Iconic) FocusRaise
+Mouse 9      A    C    Next (AcceptsFocus, !Iconic) FocusRaise 
+Mouse 1      R    C    Menu MenuFvwmRoot
+Mouse 1      R    N    Nop
+
+# Window Button Bindings
+Mouse 1      1    A    FvwmDeleteOrDestroy
+Mouse 1      4    A    Thumbnail
+Mouse 1      2    A    Maximize 100 100
+Mouse 2      2    A    Maximize 0 100
+Mouse 3      2    A    Maximize 100 0
+
+# Unless fully decorated, move and resize are ignored
+Mouse 1      T    A    RaiseShadeOrDo Move
+Mouse 1      SF   A    RaiseShadeOrDo Resize
+
+# Close window by double right click titlebar
+Mouse 3      T    A    DoubleClickDeleteWindow
+
+# Drag / uniconify Icons
+Mouse 1      I    A    FvwmMoveOrIconify
+
+# window key + ctrl or meta + mouse 1 to move / resize windows
+Mouse 1      W    3M   RaiseOrDo Move
+Mouse 1      W    3C   RaiseOrDo Resize
+
+# Cycle decorations with window key + wheel on titlebar
+Mouse 4      TSF  3    CycleDecoration 
+Mouse 5      TSF  3    ReverseCycleDecoration   
+
+# Alt+Tab Action
+Key   Tab    A    M    WindowList (CurrentPage) Root c c \
+                           NoDeskSort, SelectOnRelease Meta_L, CurrentAtEnd
+Key   Tab    A    CM   WindowList Root c c NoDeskSort, SelectOnRelease Meta_L, CurrentAtEnd
+
+# switch pages with ctrl + meta + numberpad 
+Key   KP_Home    A    CM   GotoPage 0 0
+Key   KP_Up      A    CM   GotoPage 1 0 
+Key   KP_Prior   A    CM   GotoPage 2 0
+Key   KP_Left    A    CM   GotoPage 0 1
+Key   KP_Begin   A    CM   GotoPage 1 1
+Key   KP_Right   A    CM   GotoPage 2 1
+Key   KP_End     A    CM   GotoPage 0 2 
+Key   KP_Down    A    CM   GotoPage 1 2 
+Key   KP_Next    A    CM   GotoPage 2 2
+
+# use ctrl + meta + arrows to move to page left, right, etc.
+Key   Right  A    CM   GotoPage wrapx +1p +0p
+Key   Left   A    CM   GotoPage wrapx -1p -0p
+Key   Up     A    CM   GotoPage wrapy -0p -1p
+Key   Down   A    CM   GotoPage wrapy +0p +1p
+
+# send windows to pages with ctrl + shift + KP/Arrows
+Key   KP_Home    A    CS   MoveToPage 0 0
+Key   KP_Up      A    CS   MoveToPage 1 0
+Key   KP_Prior   A    CS   MoveToPage 2 0
+Key   KP_Left    A    CS   MoveToPage 0 1
+Key   KP_Begin   A    CS   MoveToPage 1 1
+Key   KP_Right   A    CS   MoveToPage 2 1
+Key   KP_End     A    CS   MoveToPage 0 2 
+Key   KP_Down    A    CS   MoveToPage 1 2
+Key   KP_Next    A    CS   MoveToPage 2 2
+Key   Right      A    CS   MoveToPage wrapx +1p +0p
+Key   Left       A    CS   MoveToPage wrapx -1p -0p
+Key   Up         A    CS   MoveToPage wrapy -0p -1p 
+Key   Down       A    CS   MoveToPage wrapy +0p +1p 
+
+# send window to pages and switch to that page with ctrl + meta + shift + KP/Arrows
+Key   KP_Home    A    CMS  MoveToPageAndGo 0 0
+Key   KP_Up      A    CMS  MoveToPageAndGo 1 0
+Key   KP_Prior   A    CMS  MoveToPageAndGo 2 0
+Key   KP_Left    A    CMS  MoveToPageAndGo 0 1
+Key   KP_Begin   A    CMS  MoveToPageAndGo 1 1
+Key   KP_Right   A    CMS  MoveToPageAndGo 2 1
+Key   KP_End     A    CMS  MoveToPageAndGo 0 2 
+Key   KP_Down    A    CMS  MoveToPageAndGo 1 2
+Key   KP_Next    A    CMS  MoveToPageAndGo 2 2
+Key   Right  A    CMS  MoveToPageAndGo wrapx +1p +0p
+Key   Left   A    CMS  MoveToPageAndGo wrapx -1p -0p
+Key   Up     A    CMS  MoveToPageAndGo wrapy -0p -1p 
+Key   Down   A    CMS  MoveToPageAndGo wrapy +0p +1p 
+
+# "windows" Key Shortcuts
+Key  F1       A    3    Menu MenuFvwmRoot
+Key  c        A    3    FvwmConsole
+Key  r        A    S3   Restart
+Key  m        A    3    AddBorderThenDo Move
+Key  r        A    3    AddBorderThenDo Resize
+Key  s        A    3    WindowShade
+Key  d        A    3    CycleDecoration
+Key  x        A    3M   Delete
+Key  x        A    3MS  Destroy
+Key  i        A    3    Thumbnail
+Key  h        A    3    AddBorderThenTile -h
+Key  v        A    3    AddBorderThenTile
+Key  m        A    3S   Maximize 100 100
+Key  Space    A    3    Raise
+Key  Space    A    3S   Lower
+Key  7        A    3    TileWindowTopLeft
+Key  KP_Home  A    3    TileWindowTopLeft
+Key  8        A    3    TileWindowTop
+Key  KP_Up    A    3    TileWindowTop
+Key  9        A    3    TileWindowTopRight
+Key  KP_Prior A    3    TileWindowTopRight
+Key  4        A    3    TileWindowLeft
+Key  KP_Left  A    3    TileWindowLeft
+Key  5        A    3    TileWindowFull
+Key  KP_Begin A    3    TileWindowFull
+Key  6        A    3    TileWindowRight
+Key  KP_Right A    3    TileWindowRight
+Key  1        A    3    TileWindowBottomLeft
+Key  KP_End   A    3    TileWindowBottomLeft
+Key  2        A    3    TileWindowBottom
+Key  KP_Down  A    3    TileWindowBottom
+Key  3        A    3    TileWindowBottomRight
+Key  KP_Next  A    3    TileWindowBottomRight
+
+#####
+#Launcher Shortcuts
+###########
+Key Menu     A    C    Exec exec xterm 
+Key Menu     A    M    Exec exec xterm -e emacs
+Key Menu     A    S    Exec exec firefox -P default
+Key Print    A    A    FvwmDesktopScreenshot
+Key Print    A    C    FvwmWindowScreenshot
